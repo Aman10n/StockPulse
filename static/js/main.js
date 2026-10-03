@@ -160,6 +160,16 @@ function updateConnectionStatus() {
     indicator.innerHTML = `<span></span> ${online ? 'Online' : 'Offline'}`;
 }
 
+function labelResponsiveTable(table) {
+    if (!table) return;
+    const labels = [...table.querySelectorAll('thead th')].map(cell => cell.textContent.trim());
+    table.querySelectorAll('tbody tr').forEach(row => {
+        [...row.children].forEach((cell, index) => {
+            if (!cell.querySelector('.empty-state')) cell.dataset.label = labels[index] || '';
+        });
+    });
+}
+
 // ─── Startup ─────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     const savedTheme = localStorage.getItem('stockpulse-theme');

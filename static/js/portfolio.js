@@ -58,6 +58,7 @@ async function loadHoldings() {
         // Build weighted average summary
         buildAvgSummary(holdings);
         filterHoldings();
+        labelResponsiveTable(document.getElementById('portfolio-table'));
     } catch (e) {}
 }
 

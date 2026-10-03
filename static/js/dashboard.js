@@ -90,6 +90,7 @@ async function loadDashboard() {
                 </tr>
             `).join('');
         }
+        labelResponsiveTable(document.getElementById('holdings-table'));
 
         // Update timestamp
         const now = new Date();
