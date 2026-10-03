@@ -150,6 +150,14 @@ function applyTheme(theme) {
     toggle.setAttribute('aria-label', `Switch to ${isDark ? 'light' : 'dark'} theme`);
 }
 
+function updateConnectionStatus() {
+    const indicator = document.getElementById('connection-status');
+    if (!indicator) return;
+    const online = navigator.onLine;
+    indicator.classList.toggle('offline', !online);
+    indicator.innerHTML = `<span></span> ${online ? 'Online' : 'Offline'}`;
+}
+
 // ─── Startup ─────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     const savedTheme = localStorage.getItem('stockpulse-theme');
@@ -161,6 +169,9 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme(next);
     });
     startClock();
+    updateConnectionStatus();
+    window.addEventListener('online', updateConnectionStatus);
+    window.addEventListener('offline', updateConnectionStatus);
     updateMarketStatus();
 
     const sidebar = document.getElementById('sidebar');

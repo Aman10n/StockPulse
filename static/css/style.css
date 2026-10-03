@@ -106,6 +106,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .top-bar-heading { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .page-title { margin: 3px 0 0; font: 700 18px/1.3 var(--font-display); letter-spacing: -.35px; }
 .top-bar-right, .clock-wrap { display: flex; align-items: center; gap: 10px; }
+.connection-pill { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.connection-pill span { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
+.connection-pill.offline { color: var(--red); }
+.connection-pill.offline span { background: var(--red); box-shadow: 0 0 0 3px var(--red-soft); }
 .clock-wrap { color: var(--text-muted); font-size: 11px; }
 .clock { font-variant-numeric: tabular-nums; }
 .sidebar-toggle { display: none; width: 38px; height: 38px; border: 1px solid var(--border); border-radius: 10px; color: var(--text); background: transparent; }
@@ -208,6 +212,7 @@ button:disabled { opacity: .55; cursor: not-allowed; transform: none!important; 
     .top-bar { min-height: 76px; padding: 13px 18px; }
     .page-title { max-width: 58vw; overflow: hidden; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
     .top-bar-right .market-badge-top, .clock-wrap i { display: none; }
+    .connection-pill { display: none; }
     .content-area { padding: 20px 16px 38px; }
     .welcome-panel, .page-intro { align-items: flex-start; flex-direction: column; padding: 22px; }
     .welcome-actions, .page-actions { width: 100%; }
