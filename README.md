@@ -1,103 +1,168 @@
-# StockPulse — Smart Stock Monitoring Platform
+<div align="center">
 
-> A lightweight, real-time stock portfolio manager and monitoring engine built with Flask, SQLite, and vanilla JavaScript.
+# StockPulse
 
-As a senior engineer, I've designed StockPulse to be a frictionless, self-hosted web application that provides real-time equity tracking without the bloated overhead of modern heavy-weight frameworks. The goal was to build a clean, responsive, glassmorphic UI backed by a snappy Python/Flask server that directly integrates with Yahoo Finance's live tick data. 
+**A focused, self-hosted workspace for portfolio monitoring, price alerts, and market analytics.**
 
-Whether you need a daily driver to monitor your holdings, or a foundation to build automated trading alerts, this project delivers out of the box.
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-3.1-111827?logo=flask&logoColor=white)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?logo=sqlalchemy&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-4%20passing-65ddb1)
+![License](https://img.shields.io/badge/license-private-lightgrey)
 
----
+</div>
 
-## ✨ Features
+StockPulse combines a lightweight Flask API with a responsive, framework-free frontend. It tracks purchase lots, calculates weighted cost basis, monitors configurable price thresholds, visualizes historical performance, and exports portfolio records—all from a clean local-first interface.
 
-- **Live Smart Monitoring Engine:** Fetches real-time price updates from `yfinance` at 30-second intervals using Server-Sent Events (SSE). No browser refreshes required.
-- **Dynamic Portfolio Manager:** Tracks your stock inventory. Automatically calculates weighted average costs if you buy the same ticker multiple times, and groups assets by sector.
-- **Intelligent Alert System:** Set background Stop-Loss and Take-Profit thresholds. Triggers browser push notifications and audio cues the second a price boundary is crossed.
-- **Market Status Awareness:** The backend mathematically determines if the NYSE is open, closed, or in extended hours based on UTC time, reflecting real-world market conditions.
-- **Comprehensive Analytics:** Visualizes historical ticker data (line charts) and portfolio distribution (doughnut charts) using `Chart.js`.
-- **Bulk Import & Export:** Drag-and-drop CSV uploads to rapidly populate your portfolio, and export your data directly to CSV or a formatted PDF.
+## Product preview
 
----
+| Portfolio overview | Position management |
+| --- | --- |
+| ![StockPulse dashboard](docs/screenshots/dashboard.png) | ![StockPulse portfolio manager](docs/screenshots/portfolio.png) |
 
-## 🛠 Tech Stack
+## What it does
 
-I intentionally chose a stack that balances rapid development with robust data handling:
+- **Portfolio intelligence** — groups purchase lots by ticker and calculates invested capital, weighted average cost, market value, and unrealized return.
+- **Live market data** — retrieves Yahoo Finance prices with a short-lived in-memory cache and degrades cleanly when upstream data is unavailable.
+- **Price alerts** — supports stop-loss and take-profit thresholds, in-browser notifications, audio cues, and alert history.
+- **Research workspace** — plots historical ticker performance across seven time horizons and visualizes sector allocation with Chart.js.
+- **Data portability** — imports holdings from CSV and exports the portfolio as CSV or a formatted PDF report.
+- **Responsive UX** — includes accessible navigation, keyboard focus states, reduced-motion support, and layouts for desktop and mobile screens.
 
-**Backend:**
-- **Python 3.10+**: Core language.
-- **Flask**: A lightweight WSGI web application framework to handle routing and our RESTful API.
-- **SQLAlchemy**: The Python SQL toolkit and ORM. Used to interact cleanly with an embedded SQLite database (`portfolio.db`).
-- **yfinance**: Handles data scraping from Yahoo Finance for real-time stock prices, company info, and historical data.
+## Architecture
 
-**Frontend:**
-- **HTML5 / Vanilla JS**: Native ES6 async/await fetches. No heavy React/Vue overhead.
-- **Bootstrap 5**: Utilized strictly for the responsive grid and modal components.
-- **Vanilla CSS3**: Custom glassmorphism design system utilizing CSS variables `--custom-tokens` for theming.
-- **Chart.js**: Client-side rendering for analytics.
+```mermaid
+flowchart LR
+    U[Browser] -->|HTML + ES modules| F[Flask web layer]
+    U <-->|REST / JSON| A[Portfolio API]
+    U <-->|Server-Sent Events| S[Price stream]
+    A --> D[(SQLite)]
+    S --> C[15s price cache]
+    A --> C
+    C --> Y[Yahoo Finance]
+    A --> E[CSV / PDF exports]
 
----
+    subgraph Application
+        F
+        A
+        S
+        C
+        E
+    end
+```
 
-## 🏗 Architecture & Workflow
+The application keeps the deployment footprint intentionally small: Flask serves both UI and API routes, SQLAlchemy owns persistence, and vanilla JavaScript hydrates each page. See [docs/architecture.md](docs/architecture.md) for request flows, component responsibilities, and extension points.
 
-The application follows a standard Single-Page Application (SPA) feel, utilizing a clean REST API layer to decouple the UI from the database logic.
+## Technology
 
-1. **Database Initialization:** On startup, `models.py` uses SQLAlchemy to bootstrap a local `portfolio.db` file if it doesn't already exist.
-2. **REST API:** The UI communicates with `app.py` via structured JSON endpoints (`/api/holdings`, `/api/alerts`, `/api/portfolio/summary`).
-3. **Data Hydration:** Upon loading `/portfolio`, JavaScript fetches the holdings. If `yfinance` has cached live price data (cached for 15s to prevent rate-limiting), the backend maps the current price to calculate real-time P&L margins.
-4. **SSE Stream:** The `/api/stream` endpoint pushes a continuous stream of live prices and market status updates to the client via `EventSource` in `dashboard.js`.
-5. **Alert Daemon:** Every time the SSE loop runs, or when the explicit `/api/alerts/check` endpoint is hit, active alerts are evaluated against the latest cached `yfinance` tick data.
+| Layer | Choice | Role |
+| --- | --- | --- |
+| Backend | Python, Flask | Page routing, REST endpoints, SSE, exports |
+| Persistence | SQLAlchemy, SQLite | Holdings and alert storage |
+| Market data | yfinance | Live quotes, company metadata, history |
+| Frontend | Jinja, vanilla JavaScript, Bootstrap | Responsive UI and client-side behavior |
+| Visualization | Chart.js | Price history and sector allocation |
+| Reporting | fpdf2 | Downloadable PDF reports |
+| Tests | pytest | API and regression coverage |
 
----
+## Quick start
 
-## 🚀 Setup & Installation Guide
+### Windows
 
-Running this on a fresh machine? I've streamlined the setup process so you can get the application running in seconds. 
+Clone the repository, then run:
 
-### Prerequisites
-- You must have **Python 3.8 or higher** installed and added to your system `PATH`.
-- Git (optional, for cloning the repository).
+```powershell
+git clone https://github.com/Aman10n/StockPulse.git
+cd StockPulse
+./start_app.bat
+```
 
-### Step 1: Clone or Copy the Repository
-Move the project folder to your desired location on your machine.
+The launcher creates a virtual environment, installs dependencies, starts Flask, and opens `http://127.0.0.1:5000`.
 
-### Step 2: Run the Launch Script (Windows)
-If you're on a Windows machine, I've provided a batch file that handles the entire virtual environment lifecycle for you.
-1. Double-click the `start_app.bat` file in the project directory.
-2. The script will automatically:
-   - Create an isolated Python Virtual Environment (`venv`).
-   - Install all required dependencies from `requirements.txt`.
-   - Boot up the Flask server cleanly.
-   - Open your default web browser to `http://127.0.0.1:5000`.
+### Manual setup
 
-### Step 3: Manual Startup (Mac/Linux/Windows Terminal)
-If you prefer setting up manually via the terminal:
+```bash
+python -m venv venv
 
-1. **Open your terminal** and navigate to the project directory:
-   ```bash
-   cd /path/to/StockPulse
-   ```
-2. **Create a virtual environment:**
-   ```bash
-   python -m venv venv
-   ```
-3. **Activate the virtual environment:**
-   - **Windows:** `venv\Scripts\activate`
-   - **Mac/Linux:** `source venv/bin/activate`
-4. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-5. **Start the background server:**
-   ```bash
-   python app.py
-   ```
-6. **Access the application:**
-   Open your browser and navigate to `http://127.0.0.1:5000`.
+# Windows
+venv\Scripts\activate
 
----
+# macOS / Linux
+source venv/bin/activate
 
-## 💡 Usage Tips
-- **Bulk CSV Upload:** When using the Bulk Upload feature, ensure your CSV file contains the following exact headers (case sensitive): `ticker`, `buy_price`, `quantity`, `date_purchased`, `sector`.
-- **Browser Notifications:** The first time you load the dashboard, allow browser notifications inside your settings to ensure your Stop-Loss alerts can push native OS messages to your screen!
+pip install -r requirements.txt
+python app.py
+```
 
-Enjoy the platform!
+Copy `.env.example` to `.env` to override local defaults:
+
+```dotenv
+FLASK_DEBUG=false
+PORT=5000
+DATABASE_URL=sqlite:///portfolio.db
+PRICE_CACHE_TTL=15
+```
+
+## CSV import format
+
+The importer accepts UTF-8 CSV files up to 2 MB. `ticker`, `buy_price`, and `quantity` are required.
+
+```csv
+ticker,name,buy_price,quantity,date_purchased,sector
+AAPL,Apple Inc.,172.50,10,2026-01-15,Technology
+MSFT,Microsoft Corporation,405.25,5,2026-02-10,Technology
+```
+
+## API overview
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/health` | Service health and version |
+| `GET / POST` | `/api/holdings` | List or create purchase lots |
+| `PUT / DELETE` | `/api/holdings/:id` | Update or remove a lot |
+| `POST` | `/api/holdings/bulk` | Import lots from CSV |
+| `GET` | `/api/portfolio/summary` | Aggregated positions and live values |
+| `GET / POST` | `/api/alerts` | List or create price alerts |
+| `GET` | `/api/alerts/check` | Evaluate active alerts |
+| `GET` | `/api/history/:ticker` | Historical OHLCV series |
+| `GET` | `/api/stream` | Server-Sent Event price stream |
+| `GET` | `/api/export/csv` | Download portfolio CSV |
+| `GET` | `/api/export/pdf` | Download portfolio PDF |
+
+## Testing
+
+```bash
+pip install -r requirements-dev.txt
+pytest -q
+```
+
+Tests use an isolated SQLite database and mock external price requests, so the suite is deterministic and does not require market access.
+
+## Project structure
+
+```text
+StockPulse/
+├── app.py                 # Flask pages, APIs, market data, exports
+├── models.py              # SQLAlchemy models and database setup
+├── templates/             # Jinja page templates
+├── static/
+│   ├── css/style.css      # Responsive design system
+│   ├── js/                # Page-level client behavior
+│   └── audio/             # Alert sound
+├── docs/
+│   ├── architecture.md    # Detailed system design
+│   └── screenshots/       # Verified product screenshots
+├── test_api.py            # API regression suite
+└── requirements*.txt      # Runtime and development dependencies
+```
+
+## Operational notes
+
+- Market prices depend on Yahoo Finance availability and may be delayed or unavailable outside normal conditions.
+- Market-status calculation is timezone-aware for US Eastern Time but does not yet include the exchange holiday calendar.
+- The included Flask server is intended for local development. Use a production WSGI server and a managed database for public deployments.
+- StockPulse is an information tool, not financial advice or an order-execution platform.
+
+## Contributing
+
+Focused contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for the local workflow and pull-request checklist.
