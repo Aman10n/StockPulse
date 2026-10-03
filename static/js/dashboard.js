@@ -6,6 +6,11 @@ let refreshInterval = null;
 let dashboardSort = { key: 'market_value', direction: 'desc' };
 
 async function loadDashboard() {
+    const refreshButton = document.getElementById('refresh-btn');
+    const table = document.getElementById('holdings-table');
+    refreshButton?.setAttribute('disabled', '');
+    refreshButton?.classList.add('is-loading');
+    table?.setAttribute('aria-busy', 'true');
     try {
         const data = await api('/api/portfolio/summary');
         const alertsData = await api('/api/alerts');
@@ -93,6 +98,10 @@ async function loadDashboard() {
 
     } catch (e) {
         console.error('Dashboard load error:', e);
+    } finally {
+        refreshButton?.removeAttribute('disabled');
+        refreshButton?.classList.remove('is-loading');
+        table?.setAttribute('aria-busy', 'false');
     }
 }
 

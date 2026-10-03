@@ -181,6 +181,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .btn-danger-soft { padding: 8px 10px; border: 1px solid rgba(255,126,139,.18); color: var(--red); background: var(--red-soft); }
 .btn-sm { min-height: 31px; padding: 7px 9px; }
 button:disabled { opacity: .55; cursor: not-allowed; transform: none!important; }
+.is-loading i { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
 .form-control, .form-select { min-height: 42px; border: 1px solid var(--border)!important; border-radius: 10px; color: var(--text)!important; background-color: rgba(5,14,26,.68)!important; font-size: 12px; }
 .form-control:focus, .form-select:focus { border-color: rgba(119,229,192,.52)!important; box-shadow: 0 0 0 3px rgba(119,229,192,.09)!important; }
