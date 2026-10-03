@@ -139,8 +139,27 @@ function sendBrowserNotification(title, body) {
     }
 }
 
+function applyTheme(theme) {
+    const normalized = theme === 'light' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = normalized;
+    document.documentElement.dataset.bsTheme = normalized;
+    const toggle = document.getElementById('theme-toggle');
+    if (!toggle) return;
+    const isDark = normalized === 'dark';
+    toggle.innerHTML = `<i class="bi bi-${isDark ? 'sun' : 'moon-stars'}"></i>`;
+    toggle.setAttribute('aria-label', `Switch to ${isDark ? 'light' : 'dark'} theme`);
+}
+
 // ─── Startup ─────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('stockpulse-theme');
+    const preferredTheme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    applyTheme(savedTheme || preferredTheme);
+    document.getElementById('theme-toggle')?.addEventListener('click', () => {
+        const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('stockpulse-theme', next);
+        applyTheme(next);
+    });
     startClock();
     updateMarketStatus();
 

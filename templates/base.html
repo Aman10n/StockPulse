@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="dark" data-theme="dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -30,10 +30,10 @@
 
             <div class="nav-label">Workspace</div>
             <ul class="sidebar-nav">
-                <li><a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}"><i class="bi bi-grid-1x2"></i><span>Overview</span></a></li>
-                <li><a href="/portfolio" class="nav-link {% if request.path == '/portfolio' %}active{% endif %}"><i class="bi bi-layers"></i><span>Portfolio</span></a></li>
-                <li><a href="/alerts" class="nav-link {% if request.path == '/alerts' %}active{% endif %}"><i class="bi bi-bell"></i><span>Price alerts</span></a></li>
-                <li><a href="/analytics" class="nav-link {% if request.path == '/analytics' %}active{% endif %}"><i class="bi bi-bar-chart"></i><span>Analytics</span></a></li>
+                <li><a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}" {% if request.path == '/' %}aria-current="page"{% endif %}><i class="bi bi-grid-1x2"></i><span>Overview</span></a></li>
+                <li><a href="/portfolio" class="nav-link {% if request.path == '/portfolio' %}active{% endif %}" {% if request.path == '/portfolio' %}aria-current="page"{% endif %}><i class="bi bi-layers"></i><span>Portfolio</span></a></li>
+                <li><a href="/alerts" class="nav-link {% if request.path == '/alerts' %}active{% endif %}" {% if request.path == '/alerts' %}aria-current="page"{% endif %}><i class="bi bi-bell"></i><span>Price alerts</span></a></li>
+                <li><a href="/analytics" class="nav-link {% if request.path == '/analytics' %}active{% endif %}" {% if request.path == '/analytics' %}aria-current="page"{% endif %}><i class="bi bi-bar-chart"></i><span>Analytics</span></a></li>
             </ul>
 
             <div class="sidebar-insight">
@@ -65,6 +65,9 @@
                     </div>
                 </div>
                 <div class="top-bar-right">
+                    <button class="icon-button" id="theme-toggle" type="button" aria-label="Switch to light theme" title="Switch theme">
+                        <i class="bi bi-sun"></i>
+                    </button>
                     <div id="market-status-top" class="market-badge-top">
                         <span class="status-dot"></span>
                         <span class="status-text">Checking…</span>
@@ -75,6 +78,7 @@
 
             <div class="content-area">
                 {% block content %}{% endblock %}
+                <footer class="app-footer"><span>StockPulse</span><span>Portfolio intelligence for informed decisions.</span></footer>
             </div>
         </main>
     </div>
