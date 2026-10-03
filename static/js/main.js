@@ -79,11 +79,13 @@ function showToast(message, type = 'info') {
     };
 
     const toastId = 'toast-' + Date.now();
+    const role = type === 'danger' || type === 'warning' ? 'alert' : 'status';
     const html = `
-        <div id="${toastId}" class="toast show fade-in" role="alert" style="border-left: 3px solid ${colors[type] || colors.info}">
+        <div id="${toastId}" class="toast show fade-in" role="${role}" style="border-left: 3px solid ${colors[type] || colors.info}">
             <div class="toast-body d-flex align-items-center gap-2">
                 <i class="bi ${icons[type] || icons.info}" style="color:${colors[type] || colors.info}; font-size:16px"></i>
-                <span>${escapeHtml(message)}</span>
+                <span class="flex-grow-1">${escapeHtml(message)}</span>
+                <button type="button" class="toast-dismiss" aria-label="Dismiss notification" onclick="this.closest('.toast').remove()"><i class="bi bi-x"></i></button>
             </div>
         </div>`;
     container.insertAdjacentHTML('beforeend', html);
