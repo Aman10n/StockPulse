@@ -228,12 +228,16 @@ button:disabled { opacity: .55; cursor: not-allowed; transform: none!important; 
     .main-content { margin-left: 0; }
     .sidebar-toggle { display: grid; place-items: center; }
     .top-bar { min-height: 76px; padding: 13px 18px; }
+    .top-bar-heading { width: 100%; overflow: hidden; }
+    .top-bar-heading > div { min-width: 0; overflow: hidden; }
     .page-title { max-width: 58vw; overflow: hidden; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
     .top-bar-right .market-badge-top, .clock-wrap i { display: none; }
     .connection-pill { display: none; }
     .content-area { padding: 20px 16px 38px; }
     .main-content, .content-area, .welcome-panel, .page-intro, .panel { min-width: 0; max-width: 100%; }
     .welcome-panel, .page-intro { align-items: flex-start; flex-direction: column; padding: 22px; }
+    .welcome-panel > div:first-child, .page-intro > div:first-child { width: 100%; min-width: 0; }
+    .welcome-panel p, .page-intro p { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
     .welcome-actions, .page-actions { width: 100%; }
     .welcome-actions > *, .page-actions > * { flex: 1; }
     .summary-cards { grid-template-columns: 1fr 1fr; gap: 10px; }
