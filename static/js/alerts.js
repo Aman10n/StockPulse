@@ -24,14 +24,14 @@ async function loadAlerts() {
                 <tr>
                     <td class="ticker-cell">${escapeHtml(a.ticker)}</td>
                     <td>
-                        <span style="color:${a.alert_type === 'stop-loss' ? 'var(--red)' : 'var(--green)'}; font-weight:600; font-size:12px">
-                            ${a.alert_type === 'stop-loss' ? '🔻 Stop-Loss' : '🔺 Take-Profit'}
+                        <span class="alert-type ${a.alert_type}">
+                            <i class="bi bi-${a.alert_type === 'stop-loss' ? 'arrow-down-right' : 'arrow-up-right'}"></i> ${a.alert_type === 'stop-loss' ? 'Stop-loss' : 'Take-profit'}
                         </span>
                     </td>
                     <td style="font-weight:600">${formatCurrency(a.threshold_price)}</td>
                     <td>
-                        <span style="display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:20px; background:var(--green-soft); color:var(--green); font-size:11px; font-weight:600">
-                            <span style="width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse-dot 2s infinite"></span>
+                        <span class="status-chip active">
+                            <span></span>
                             Active
                         </span>
                     </td>
@@ -55,8 +55,8 @@ async function loadAlerts() {
                 <tr class="alert-flash">
                     <td class="ticker-cell">${escapeHtml(a.ticker)}</td>
                     <td>
-                        <span style="color:${a.alert_type === 'stop-loss' ? 'var(--red)' : 'var(--green)'}; font-weight:600; font-size:12px">
-                            ${a.alert_type === 'stop-loss' ? '🔻 Stop-Loss' : '🔺 Take-Profit'}
+                        <span class="alert-type ${a.alert_type}">
+                            <i class="bi bi-${a.alert_type === 'stop-loss' ? 'arrow-down-right' : 'arrow-up-right'}"></i> ${a.alert_type === 'stop-loss' ? 'Stop-loss' : 'Take-profit'}
                         </span>
                     </td>
                     <td style="font-weight:600">${formatCurrency(a.threshold_price)}</td>

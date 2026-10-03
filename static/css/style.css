@@ -173,6 +173,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .ticker-cell { color: var(--text)!important; font-family: var(--font-display); font-weight: 800; letter-spacing: .03em; }
 .name-cell { max-width: 180px; overflow: hidden; color: var(--text-secondary)!important; text-overflow: ellipsis; }
 .sector-badge { display: inline-block; padding: 4px 8px; border: 1px solid rgba(95,185,255,.13); border-radius: 999px; color: #9bd1ff; background: rgba(95,185,255,.07); font-size: 9px; font-weight: 700; }
+.alert-type, .status-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 700; }
+.alert-type.stop-loss { color: var(--red); }
+.alert-type.take-profit { color: var(--green); }
+.status-chip { padding: 5px 9px; border-radius: 999px; color: var(--green); background: var(--green-soft); }
+.status-chip > span { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 2s infinite; }
 
 .btn-primary-gradient, .btn-outline-glass, .btn-danger-soft { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; line-height: 1; transition: .18s ease; cursor: pointer; }
 .btn-primary-gradient { min-height: 38px; padding: 10px 15px; border: 0; color: #06131d; background: var(--accent-gradient); box-shadow: 0 8px 24px rgba(95,185,255,.12); }
