@@ -18,6 +18,7 @@ from flask import (
     Flask, render_template, request, jsonify, Response, send_file, stream_with_context
 )
 from flask_cors import CORS
+from werkzeug.exceptions import RequestEntityTooLarge
 import yfinance as yf
 from fpdf import FPDF
 from dotenv import load_dotenv
@@ -167,6 +168,19 @@ def add_security_headers(response):
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     return response
+
+
+@app.errorhandler(ValueError)
+def handle_validation_error(error):
+    """Keep validation failures predictable for API consumers."""
+    if request.path.startswith('/api/'):
+        return jsonify({'error': str(error)}), 400
+    raise error
+
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_file_too_large(_error):
+    return jsonify({'error': 'Upload exceeds the 2 MB limit'}), 413
 
 
 # ---------------------------------------------------------------------------
