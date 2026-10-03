@@ -27,11 +27,13 @@ async function loadHoldings() {
                 <i class="bi bi-inbox"></i><h4>No Holdings</h4><p>Click "Add Holding" to get started.</p>
             </div></td></tr>`;
         } else {
-            tbody.innerHTML = holdings.map(h => `
-                <tr data-search="${`${h.ticker} ${h.name || ''} ${h.sector || ''}`.toLowerCase()}">
-                    <td class="ticker-cell">${h.ticker}</td>
-                    <td class="name-cell">${h.name || '—'}</td>
-                    <td><span class="sector-badge">${h.sector || 'N/A'}</span></td>
+            tbody.innerHTML = holdings.map(h => {
+                const searchText = escapeHtml(`${h.ticker} ${h.name || ''} ${h.sector || ''}`.toLowerCase());
+                return `
+                <tr data-search="${searchText}">
+                    <td class="ticker-cell">${escapeHtml(h.ticker)}</td>
+                    <td class="name-cell">${escapeHtml(h.name || '—')}</td>
+                    <td><span class="sector-badge">${escapeHtml(h.sector || 'N/A')}</span></td>
                     <td>${formatCurrency(h.buy_price)}</td>
                     <td>${formatNumber(h.quantity, 2)}</td>
                     <td>${formatCurrency(h.buy_price * h.quantity)}</td>
@@ -44,8 +46,8 @@ async function loadHoldings() {
                             <i class="bi bi-trash"></i>
                         </button>
                     </td>
-                </tr>
-            `).join('');
+                </tr>`;
+            }).join('');
         }
 
         const totalCost = holdings.reduce((sum, h) => sum + (h.buy_price * h.quantity), 0);
@@ -91,8 +93,8 @@ function buildAvgSummary(holdings) {
         const d = agg[t];
         const avg = d.totalQty > 0 ? d.totalCost / d.totalQty : 0;
         html += `<tr>
-            <td class="ticker-cell">${t}</td>
-            <td class="name-cell">${d.name || '—'}</td>
+            <td class="ticker-cell">${escapeHtml(t)}</td>
+            <td class="name-cell">${escapeHtml(d.name || '—')}</td>
             <td>${d.count}</td>
             <td>${formatNumber(d.totalQty, 2)}</td>
             <td style="font-weight:600">${formatCurrency(avg)}</td>
@@ -234,7 +236,7 @@ async function uploadCSV(file) {
             resultEl.innerHTML = `
                 <div class="alert alert-warning" style="font-size:12px; background:var(--yellow-soft); border-color:rgba(245,158,11,0.3); color:var(--yellow)">
                     <strong>${data.created} holdings added.</strong> ${data.errors.length} error(s):<br>
-                    ${data.errors.join('<br>')}
+                    ${data.errors.map(escapeHtml).join('<br>')}
                 </div>`;
             showToast(`Imported ${data.created} with ${data.errors.length} errors`, 'warning');
         } else {
