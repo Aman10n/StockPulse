@@ -22,7 +22,7 @@ async function loadAlerts() {
         } else {
             activeBody.innerHTML = active.map(a => `
                 <tr>
-                    <td class="ticker-cell">${a.ticker}</td>
+                    <td class="ticker-cell">${escapeHtml(a.ticker)}</td>
                     <td>
                         <span style="color:${a.alert_type === 'stop-loss' ? 'var(--red)' : 'var(--green)'}; font-weight:600; font-size:12px">
                             ${a.alert_type === 'stop-loss' ? '🔻 Stop-Loss' : '🔺 Take-Profit'}
@@ -53,7 +53,7 @@ async function loadAlerts() {
         } else {
             triggeredBody.innerHTML = triggered.map(a => `
                 <tr class="alert-flash">
-                    <td class="ticker-cell">${a.ticker}</td>
+                    <td class="ticker-cell">${escapeHtml(a.ticker)}</td>
                     <td>
                         <span style="color:${a.alert_type === 'stop-loss' ? 'var(--red)' : 'var(--green)'}; font-weight:600; font-size:12px">
                             ${a.alert_type === 'stop-loss' ? '🔻 Stop-Loss' : '🔺 Take-Profit'}
@@ -62,6 +62,9 @@ async function loadAlerts() {
                     <td style="font-weight:600">${formatCurrency(a.threshold_price)}</td>
                     <td style="color:var(--yellow); font-size:12px">${a.triggered_at ? new Date(a.triggered_at).toLocaleString() : '—'}</td>
                     <td>
+                        <button class="btn-outline-glass btn-sm me-1" onclick="rearmAlert(${a.id})" title="Re-arm alert" aria-label="Re-arm ${escapeHtml(a.ticker)} alert">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
                         <button class="btn-danger-soft btn-sm" onclick="deleteAlert(${a.id})" title="Remove">
                             <i class="bi bi-trash"></i>
                         </button>
@@ -103,6 +106,14 @@ async function deleteAlert(id) {
     try {
         await api(`/api/alerts/${id}`, { method: 'DELETE' });
         showToast('Alert deleted', 'info');
+        loadAlerts();
+    } catch (e) {}
+}
+
+async function rearmAlert(id) {
+    try {
+        await api(`/api/alerts/${id}/rearm`, { method: 'POST' });
+        showToast('Alert re-armed', 'success');
         loadAlerts();
     } catch (e) {}
 }
