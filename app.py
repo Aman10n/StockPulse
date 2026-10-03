@@ -145,6 +145,18 @@ def _ticker_symbol(value) -> str:
     return ticker
 
 
+def _purchase_date(value) -> str:
+    """Return an ISO purchase date, defaulting to today when omitted."""
+    date_value = value or datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    try:
+        parsed = datetime.strptime(str(date_value), '%Y-%m-%d').date()
+    except (TypeError, ValueError) as exc:
+        raise ValueError('date_purchased must use YYYY-MM-DD') from exc
+    if parsed > datetime.now(timezone.utc).date():
+        raise ValueError('date_purchased cannot be in the future')
+    return parsed.isoformat()
+
+
 @app.after_request
 def add_security_headers(response):
     """Apply safe browser defaults to every response."""
@@ -219,6 +231,7 @@ def add_holding():
     try:
         buy_price = _positive_number(buy_price, 'buy_price')
         quantity = _positive_number(quantity, 'quantity')
+        date_purchased = _purchase_date(data.get('date_purchased'))
     except ValueError as exc:
         return jsonify({'error': str(exc)}), 400
 
@@ -241,7 +254,7 @@ def add_holding():
             sector=sector if sector else 'Uncategorized',
             buy_price=buy_price,
             quantity=quantity,
-            date_purchased=data.get('date_purchased', datetime.now(timezone.utc).strftime('%Y-%m-%d')),
+            date_purchased=date_purchased,
         )
         db.add(holding)
         db.commit()
@@ -271,7 +284,7 @@ def update_holding(holding_id):
         if 'quantity' in data:
             holding.quantity = _positive_number(data['quantity'], 'quantity')
         if 'date_purchased' in data:
-            holding.date_purchased = data['date_purchased']
+            holding.date_purchased = _purchase_date(data['date_purchased'])
 
         db.commit()
         db.refresh(holding)
@@ -316,6 +329,7 @@ def bulk_upload():
                 ticker = _ticker_symbol(row.get('ticker'))
                 buy_price = _positive_number(row.get('buy_price'), 'buy_price')
                 quantity = _positive_number(row.get('quantity'), 'quantity')
+                date_purchased = _purchase_date(row.get('date_purchased'))
                 info = _get_ticker_info(ticker)
                 holding = Holding(
                     ticker=ticker,
@@ -323,7 +337,7 @@ def bulk_upload():
                     sector=row.get('sector', '').strip() or info['sector'],
                     buy_price=buy_price,
                     quantity=quantity,
-                    date_purchased=row.get('date_purchased', datetime.now(timezone.utc).strftime('%Y-%m-%d')),
+                    date_purchased=date_purchased,
                 )
                 db.add(holding)
                 created.append(ticker)
