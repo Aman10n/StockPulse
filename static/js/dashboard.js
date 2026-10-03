@@ -3,11 +3,21 @@
  */
 
 let refreshInterval = null;
+let dashboardSort = { key: 'market_value', direction: 'desc' };
 
 async function loadDashboard() {
     try {
         const data = await api('/api/portfolio/summary');
         const alertsData = await api('/api/alerts');
+
+        data.sort((a, b) => {
+            const left = a[dashboardSort.key] ?? -Infinity;
+            const right = b[dashboardSort.key] ?? -Infinity;
+            const comparison = typeof left === 'string'
+                ? left.localeCompare(right)
+                : left - right;
+            return dashboardSort.direction === 'asc' ? comparison : -comparison;
+        });
 
         // Compute totals
         let totalInvested = 0, totalMarketValue = 0, totalPnl = 0, holdingCount = 0, pricedPositions = 0;
@@ -87,6 +97,18 @@ async function loadDashboard() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.sort-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const key = button.dataset.sort;
+            dashboardSort = {
+                key,
+                direction: dashboardSort.key === key && dashboardSort.direction === 'desc' ? 'asc' : 'desc',
+            };
+            document.querySelectorAll('.sort-button').forEach(item => item.classList.remove('active'));
+            button.classList.add('active');
+            loadDashboard();
+        });
+    });
     loadDashboard();
     // Auto-refresh every 30 seconds
     refreshInterval = setInterval(loadDashboard, 30000);

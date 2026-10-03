@@ -53,7 +53,17 @@
     </div>
     <div class="data-table-wrapper">
         <table class="data-table" id="holdings-table">
-            <thead><tr><th>Ticker</th><th>Company</th><th>Sector</th><th>Avg cost</th><th>Quantity</th><th>Invested</th><th>Last price</th><th>Market value</th><th>P&amp;L</th><th>Return</th></tr></thead>
+            <thead><tr>
+                <th><button class="sort-button" data-sort="ticker">Ticker <i class="bi bi-arrow-down-up"></i></button></th>
+                <th>Company</th><th>Sector</th>
+                <th><button class="sort-button" data-sort="avg_cost">Avg cost <i class="bi bi-arrow-down-up"></i></button></th>
+                <th><button class="sort-button" data-sort="total_qty">Quantity <i class="bi bi-arrow-down-up"></i></button></th>
+                <th><button class="sort-button" data-sort="total_invested">Invested <i class="bi bi-arrow-down-up"></i></button></th>
+                <th><button class="sort-button" data-sort="current_price">Last price <i class="bi bi-arrow-down-up"></i></button></th>
+                <th><button class="sort-button" data-sort="market_value">Market value <i class="bi bi-arrow-down-up"></i></button></th>
+                <th><button class="sort-button" data-sort="pnl">P&amp;L <i class="bi bi-arrow-down-up"></i></button></th>
+                <th><button class="sort-button" data-sort="pnl_pct">Return <i class="bi bi-arrow-down-up"></i></button></th>
+            </tr></thead>
             <tbody id="holdings-body">
                 <tr><td colspan="10"><div class="empty-state"><span class="empty-icon"><i class="bi bi-layers"></i></span><h3>Your portfolio is ready for its first position</h3><p>Add a holding to unlock live performance and allocation insights.</p><a class="btn-primary-gradient" href="/portfolio"><i class="bi bi-plus-lg"></i> Add your first holding</a></div></td></tr>
             </tbody>

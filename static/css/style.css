@@ -162,6 +162,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .data-table-wrapper { width: 100%; overflow-x: auto; }
 .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .data-table th { padding: 11px 13px; border-bottom: 1px solid var(--border-strong); color: var(--text-muted); font-size: 9px; font-weight: 700; letter-spacing: .09em; text-align: left; text-transform: uppercase; white-space: nowrap; }
+.sort-button { display: inline-flex; align-items: center; gap: 5px; padding: 0; border: 0; color: inherit; background: transparent; font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; }
+.sort-button:hover, .sort-button.active { color: var(--accent-primary); }
+.sort-button i { font-size: 9px; }
 .data-table td { padding: 15px 13px; border-bottom: 1px solid var(--border); color: #dbe5ef; vertical-align: middle; white-space: nowrap; }
 .data-table tbody tr { transition: background .15s ease; }
 .data-table tbody tr:hover { background: rgba(119,229,192,.025); }
