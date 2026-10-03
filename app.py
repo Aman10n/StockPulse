@@ -336,12 +336,22 @@ def bulk_upload():
 
     stream = io.StringIO(file.stream.read().decode('utf-8-sig'))
     reader = csv.DictReader(stream)
+    required_columns = {'ticker', 'buy_price', 'quantity'}
+    columns = set(reader.fieldnames or [])
+    missing_columns = sorted(required_columns - columns)
+    if missing_columns:
+        return jsonify({
+            'error': f"Missing required columns: {', '.join(missing_columns)}"
+        }), 400
     created = []
     errors = []
 
     db = SessionLocal()
     try:
         for i, row in enumerate(reader, start=2):
+            if i > 1001:
+                errors.append('Import stopped at the 1,000-row limit')
+                break
             try:
                 ticker = _ticker_symbol(row.get('ticker'))
                 buy_price = _positive_number(row.get('buy_price'), 'buy_price')
