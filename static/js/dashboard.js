@@ -73,9 +73,9 @@ async function loadDashboard() {
         } else {
             tbody.innerHTML = data.map(item => `
                 <tr>
-                    <td class="ticker-cell">${item.ticker}</td>
-                    <td class="name-cell">${item.name || '—'}</td>
-                    <td><span class="sector-badge">${item.sector || 'N/A'}</span></td>
+                    <td class="ticker-cell">${escapeHtml(item.ticker)}</td>
+                    <td class="name-cell">${escapeHtml(item.name || '—')}</td>
+                    <td><span class="sector-badge">${escapeHtml(item.sector || 'N/A')}</span></td>
                     <td>${formatCurrency(item.avg_cost)}</td>
                     <td>${formatNumber(item.total_qty, 2)}</td>
                     <td>${formatCurrency(item.total_invested)}</td>
