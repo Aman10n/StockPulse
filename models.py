@@ -2,10 +2,12 @@
 Database models for the Smart Stock Monitoring Platform.
 Uses SQLAlchemy ORM with SQLite backend.
 """
-from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, DateTime, Text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from datetime import datetime
+import os
+
+from dotenv import load_dotenv
+from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+from datetime import datetime, timezone
 
 Base = declarative_base()
 
@@ -21,7 +23,7 @@ class Holding(Base):
     buy_price = Column(Float, nullable=False)
     quantity = Column(Float, nullable=False)
     date_purchased = Column(String(20), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
         return {
@@ -46,7 +48,7 @@ class Alert(Base):
     threshold_price = Column(Float, nullable=False)
     is_triggered = Column(Boolean, default=False)
     triggered_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
         return {
@@ -63,10 +65,15 @@ class Alert(Base):
 # ---------------------------------------------------------------------------
 # Database initialization
 # ---------------------------------------------------------------------------
-DATABASE_URL = 'sqlite:///portfolio.db'
+load_dotenv()
+DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///portfolio.db')
 
-engine = create_engine(DATABASE_URL, echo=False)
-SessionLocal = sessionmaker(bind=engine)
+engine_options = {'echo': False, 'pool_pre_ping': True}
+if DATABASE_URL.startswith('sqlite'):
+    engine_options['connect_args'] = {'check_same_thread': False}
+
+engine = create_engine(DATABASE_URL, **engine_options)
+SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
 
 def init_db():

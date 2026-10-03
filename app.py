@@ -9,29 +9,33 @@ import csv
 import io
 import json
 import time
-from datetime import datetime, timedelta
-from functools import lru_cache
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 from flask import (
     Flask, render_template, request, jsonify, Response, send_file, stream_with_context
 )
 from flask_cors import CORS
-from sqlalchemy import func
 import yfinance as yf
 from fpdf import FPDF
+from dotenv import load_dotenv
 
 from models import init_db, SessionLocal, Holding, Alert
 
 # ---------------------------------------------------------------------------
 # App setup
 # ---------------------------------------------------------------------------
+load_dotenv()
+
+APP_VERSION = '2.0.0'
 app = Flask(__name__)
-CORS(app)
+app.config.update(JSON_SORT_KEYS=False, MAX_CONTENT_LENGTH=2 * 1024 * 1024)
+CORS(app, resources={r'/api/*': {'origins': '*'}})
 init_db()
 
 # Simple in-memory price cache (ticker -> {price, timestamp})
 _price_cache: dict = {}
-CACHE_TTL = 15  # seconds
+CACHE_TTL = int(os.getenv('PRICE_CACHE_TTL', '15'))
 
 
 # ---------------------------------------------------------------------------
@@ -85,14 +89,11 @@ def _fetch_live_prices(tickers: list[str]) -> dict:
 
 
 def _get_market_status() -> dict:
-    """Determine NYSE market status based on current UTC time."""
-    from datetime import timezone
-    now_utc = datetime.now(timezone.utc)
-    # NYSE hours: 9:30 AM — 4:00 PM ET (UTC-5 / UTC-4 DST)
-    # Simplified: assume ET = UTC-4 for rough calc
-    et_hour = (now_utc.hour - 4) % 24
-    et_min = now_utc.minute
-    weekday = now_utc.weekday()  # Mon=0 … Sun=6
+    """Return a timezone-aware approximation of US equity market hours."""
+    now_et = datetime.now(timezone.utc).astimezone(ZoneInfo('America/New_York'))
+    et_hour = now_et.hour
+    et_min = now_et.minute
+    weekday = now_et.weekday()
 
     if weekday >= 5:
         return {'status': 'closed', 'label': 'Market Closed (Weekend)'}
@@ -123,6 +124,26 @@ def _get_ticker_info(ticker_symbol: str) -> dict:
         return {'name': ticker_symbol, 'sector': 'Uncategorized'}
 
 
+def _positive_number(value, field_name: str) -> float:
+    """Parse and validate a positive numeric API field."""
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f'{field_name} must be a number') from exc
+    if parsed <= 0:
+        raise ValueError(f'{field_name} must be greater than zero')
+    return parsed
+
+
+@app.after_request
+def add_security_headers(response):
+    """Apply safe browser defaults to every response."""
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    return response
+
+
 # ---------------------------------------------------------------------------
 # Page Routes
 # ---------------------------------------------------------------------------
@@ -144,6 +165,16 @@ def alerts_page():
 @app.route('/analytics')
 def analytics_page():
     return render_template('analytics.html')
+
+
+@app.route('/api/health')
+def health_check():
+    return jsonify({
+        'status': 'ok',
+        'service': 'stockpulse',
+        'version': APP_VERSION,
+        'timestamp': datetime.now(timezone.utc).isoformat(),
+    })
 
 
 # ---------------------------------------------------------------------------
@@ -173,10 +204,10 @@ def add_holding():
         return jsonify({'error': 'ticker, buy_price and quantity are required'}), 400
 
     try:
-        buy_price = float(buy_price)
-        quantity = float(quantity)
-    except (ValueError, TypeError):
-        return jsonify({'error': 'buy_price and quantity must be numbers'}), 400
+        buy_price = _positive_number(buy_price, 'buy_price')
+        quantity = _positive_number(quantity, 'quantity')
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 400
 
     sector = (data.get('sector') or '').strip()
     name = (data.get('name') or '').strip()
@@ -197,7 +228,7 @@ def add_holding():
             sector=sector if sector else 'Uncategorized',
             buy_price=buy_price,
             quantity=quantity,
-            date_purchased=data.get('date_purchased', datetime.utcnow().strftime('%Y-%m-%d')),
+            date_purchased=data.get('date_purchased', datetime.now(timezone.utc).strftime('%Y-%m-%d')),
         )
         db.add(holding)
         db.commit()
@@ -223,9 +254,9 @@ def update_holding(holding_id):
         if 'sector' in data:
             holding.sector = data['sector']
         if 'buy_price' in data:
-            holding.buy_price = float(data['buy_price'])
+            holding.buy_price = _positive_number(data['buy_price'], 'buy_price')
         if 'quantity' in data:
-            holding.quantity = float(data['quantity'])
+            holding.quantity = _positive_number(data['quantity'], 'quantity')
         if 'date_purchased' in data:
             holding.date_purchased = data['date_purchased']
 
@@ -270,8 +301,8 @@ def bulk_upload():
         for i, row in enumerate(reader, start=2):
             try:
                 ticker = (row.get('ticker') or '').upper().strip()
-                buy_price = float(row.get('buy_price', 0))
-                quantity = float(row.get('quantity', 0))
+                buy_price = _positive_number(row.get('buy_price'), 'buy_price')
+                quantity = _positive_number(row.get('quantity'), 'quantity')
                 if not ticker:
                     raise ValueError('Missing ticker')
 
@@ -282,7 +313,7 @@ def bulk_upload():
                     sector=row.get('sector', '').strip() or info['sector'],
                     buy_price=buy_price,
                     quantity=quantity,
-                    date_purchased=row.get('date_purchased', datetime.utcnow().strftime('%Y-%m-%d')),
+                    date_purchased=row.get('date_purchased', datetime.now(timezone.utc).strftime('%Y-%m-%d')),
                 )
                 db.add(holding)
                 created.append(ticker)
@@ -395,7 +426,11 @@ def price_stream():
 
             time.sleep(30)  # Update every 30 seconds
 
-    return Response(stream_with_context(generate()), mimetype='text/event-stream')
+    return Response(
+        stream_with_context(generate()),
+        mimetype='text/event-stream',
+        headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'},
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -424,9 +459,14 @@ def create_alert():
     if not ticker or alert_type not in ('stop-loss', 'take-profit') or threshold is None:
         return jsonify({'error': 'ticker, alert_type (stop-loss|take-profit), and threshold_price are required'}), 400
 
+    try:
+        threshold = _positive_number(threshold, 'threshold_price')
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 400
+
     db = SessionLocal()
     try:
-        alert = Alert(ticker=ticker, alert_type=alert_type, threshold_price=float(threshold))
+        alert = Alert(ticker=ticker, alert_type=alert_type, threshold_price=threshold)
         db.add(alert)
         db.commit()
         db.refresh(alert)
@@ -474,7 +514,7 @@ def check_alerts():
 
             if hit:
                 a.is_triggered = True
-                a.triggered_at = datetime.utcnow()
+                a.triggered_at = datetime.now(timezone.utc)
                 triggered.append({
                     **a.to_dict(),
                     'current_price': round(price, 2),
@@ -568,7 +608,7 @@ def export_pdf():
     pdf.set_font('Helvetica', 'B', 16)
     pdf.cell(0, 10, 'Portfolio Report', new_x='LMARGIN', new_y='NEXT', align='C')
     pdf.set_font('Helvetica', '', 9)
-    pdf.cell(0, 8, f'Generated: {datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")}',
+    pdf.cell(0, 8, f'Generated: {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")}',
              new_x='LMARGIN', new_y='NEXT', align='C')
     pdf.ln(5)
 
@@ -609,4 +649,6 @@ if __name__ == '__main__':
     print('\n  Smart Stock Monitoring Platform')
     print('  ================================')
     print('  Open http://127.0.0.1:5000 in your browser\n')
-    app.run(debug=True, port=5000, threaded=True)
+    debug = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
+    port = int(os.getenv('PORT', '5000'))
+    app.run(debug=debug, port=port, threaded=True)
