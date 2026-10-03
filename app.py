@@ -520,6 +520,14 @@ def create_alert():
 
     db = SessionLocal()
     try:
+        duplicate = db.query(Alert).filter(
+            Alert.ticker == ticker,
+            Alert.alert_type == alert_type,
+            Alert.threshold_price == threshold,
+            Alert.is_triggered == False,
+        ).first()
+        if duplicate:
+            return jsonify({'error': 'An identical active alert already exists'}), 409
         alert = Alert(ticker=ticker, alert_type=alert_type, threshold_price=threshold)
         db.add(alert)
         db.commit()
