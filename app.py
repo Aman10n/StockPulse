@@ -551,6 +551,23 @@ def delete_alert(alert_id):
         db.close()
 
 
+@app.route('/api/alerts/<int:alert_id>/rearm', methods=['POST'])
+def rearm_alert(alert_id):
+    """Reactivate a previously triggered alert."""
+    db = SessionLocal()
+    try:
+        alert = db.query(Alert).filter(Alert.id == alert_id).first()
+        if not alert:
+            return jsonify({'error': 'Alert not found'}), 404
+        alert.is_triggered = False
+        alert.triggered_at = None
+        db.commit()
+        db.refresh(alert)
+        return jsonify(alert.to_dict())
+    finally:
+        db.close()
+
+
 @app.route('/api/alerts/check', methods=['GET'])
 def check_alerts():
     """Evaluate active alerts against current prices. Returns triggered alerts."""
