@@ -28,7 +28,7 @@ async function loadHoldings() {
             </div></td></tr>`;
         } else {
             tbody.innerHTML = holdings.map(h => `
-                <tr>
+                <tr data-search="${`${h.ticker} ${h.name || ''} ${h.sector || ''}`.toLowerCase()}">
                     <td class="ticker-cell">${h.ticker}</td>
                     <td class="name-cell">${h.name || '—'}</td>
                     <td><span class="sector-badge">${h.sector || 'N/A'}</span></td>
@@ -55,7 +55,15 @@ async function loadHoldings() {
 
         // Build weighted average summary
         buildAvgSummary(holdings);
+        filterHoldings();
     } catch (e) {}
+}
+
+function filterHoldings() {
+    const query = document.getElementById('portfolio-search')?.value.trim().toLowerCase() || '';
+    document.querySelectorAll('#portfolio-body tr[data-search]').forEach(row => {
+        row.hidden = query !== '' && !row.dataset.search.includes(query);
+    });
 }
 
 // ─── Weighted Average Summary ────────────────────────────────
@@ -248,6 +256,13 @@ async function uploadCSV(file) {
 document.addEventListener('DOMContentLoaded', () => {
     loadSectors();
     loadHoldings();
+    document.getElementById('portfolio-search')?.addEventListener('input', filterHoldings);
+    document.addEventListener('keydown', event => {
+        if (event.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) {
+            event.preventDefault();
+            document.getElementById('portfolio-search')?.focus();
+        }
+    });
 
     const dz = document.getElementById('drop-zone');
     if (dz) {
