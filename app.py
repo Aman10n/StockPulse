@@ -8,6 +8,7 @@ import os
 import csv
 import io
 import json
+import re
 import time
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
@@ -36,6 +37,7 @@ init_db()
 # Simple in-memory price cache (ticker -> {price, timestamp})
 _price_cache: dict = {}
 CACHE_TTL = int(os.getenv('PRICE_CACHE_TTL', '15'))
+TICKER_PATTERN = re.compile(r'^[A-Z][A-Z0-9.\-]{0,9}$')
 
 
 # ---------------------------------------------------------------------------
@@ -135,6 +137,14 @@ def _positive_number(value, field_name: str) -> float:
     return parsed
 
 
+def _ticker_symbol(value) -> str:
+    """Normalize a ticker and reject malformed symbols early."""
+    ticker = str(value or '').upper().strip()
+    if not TICKER_PATTERN.fullmatch(ticker):
+        raise ValueError('ticker must be 1-10 letters, numbers, dots, or hyphens')
+    return ticker
+
+
 @app.after_request
 def add_security_headers(response):
     """Apply safe browser defaults to every response."""
@@ -196,11 +206,14 @@ def add_holding():
     if not data:
         return jsonify({'error': 'No data provided'}), 400
 
-    ticker = (data.get('ticker') or '').upper().strip()
+    try:
+        ticker = _ticker_symbol(data.get('ticker'))
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 400
     buy_price = data.get('buy_price')
     quantity = data.get('quantity')
 
-    if not ticker or buy_price is None or quantity is None:
+    if buy_price is None or quantity is None:
         return jsonify({'error': 'ticker, buy_price and quantity are required'}), 400
 
     try:
@@ -248,7 +261,7 @@ def update_holding(holding_id):
             return jsonify({'error': 'Holding not found'}), 404
 
         if 'ticker' in data:
-            holding.ticker = data['ticker'].upper().strip()
+            holding.ticker = _ticker_symbol(data['ticker'])
         if 'name' in data:
             holding.name = data['name']
         if 'sector' in data:
@@ -300,12 +313,9 @@ def bulk_upload():
     try:
         for i, row in enumerate(reader, start=2):
             try:
-                ticker = (row.get('ticker') or '').upper().strip()
+                ticker = _ticker_symbol(row.get('ticker'))
                 buy_price = _positive_number(row.get('buy_price'), 'buy_price')
                 quantity = _positive_number(row.get('quantity'), 'quantity')
-                if not ticker:
-                    raise ValueError('Missing ticker')
-
                 info = _get_ticker_info(ticker)
                 holding = Holding(
                     ticker=ticker,
@@ -452,7 +462,10 @@ def create_alert():
     if not data:
         return jsonify({'error': 'No data provided'}), 400
 
-    ticker = (data.get('ticker') or '').upper().strip()
+    try:
+        ticker = _ticker_symbol(data.get('ticker'))
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 400
     alert_type = data.get('alert_type', '').strip()
     threshold = data.get('threshold_price')
 
@@ -531,7 +544,10 @@ def check_alerts():
 # ---------------------------------------------------------------------------
 @app.route('/api/history/<ticker>', methods=['GET'])
 def get_history(ticker):
-    ticker = ticker.upper().strip()
+    try:
+        ticker = _ticker_symbol(ticker)
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 400
     period = request.args.get('period', '1mo')  # 1d,5d,1mo,3mo,6mo,1y,2y,5y,max
     try:
         tk = yf.Ticker(ticker)
