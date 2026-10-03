@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}Portfolio{% endblock %}
-{% block page_title %}Portfolio Manager{% endblock %}
+{% block title %}Portfolio manager{% endblock %}
+{% block page_eyebrow %}Position management{% endblock %}
+{% block page_title %}Build and refine your portfolio.{% endblock %}
 
 {% block content %}
-<!-- Action Bar -->
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 fade-in">
+<section class="page-intro fade-in">
     <div>
-        <h2 style="font-size:15px; font-weight:600; color:var(--text-secondary); margin:0;">
-            Manage your stock holdings — add, edit, or bulk-upload purchases.
-        </h2>
+        <span class="eyebrow">Portfolio ledger</span>
+        <h2>Your positions, organized.</h2>
+        <p>Add individual purchases, import a CSV, and keep your weighted cost basis accurate.</p>
     </div>
-    <div class="d-flex gap-2">
+    <div class="page-actions">
         <button class="btn-outline-glass" data-bs-toggle="modal" data-bs-target="#bulkUploadModal" id="bulk-upload-btn">
             <i class="bi bi-upload me-1"></i>Bulk Upload
         </button>
@@ -19,10 +19,17 @@
             <i class="bi bi-plus-lg me-1"></i>Add Holding
         </button>
     </div>
-</div>
+</section>
+
+<section class="mini-metrics fade-in" style="--delay:.08s" aria-label="Portfolio totals">
+    <div><span>Purchase entries</span><strong id="portfolio-entry-count">0</strong></div>
+    <div><span>Unique tickers</span><strong id="portfolio-ticker-count">0</strong></div>
+    <div><span>Total cost basis</span><strong id="portfolio-cost-basis">$0.00</strong></div>
+</section>
 
 <!-- Holdings Table -->
-<div class="glass-card fade-in" style="animation-delay:0.15s">
+<div class="panel fade-in" style="--delay:.15s">
+    <div class="panel-header"><div><span class="eyebrow">Ledger</span><h2>Purchase history</h2><p>Every lot remains editable and contributes to the weighted average.</p></div></div>
     <div class="data-table-wrapper">
         <table class="data-table" id="portfolio-table">
             <thead>
@@ -45,10 +52,8 @@
 </div>
 
 <!-- Weighted Average Summary -->
-<div class="glass-card mt-4 fade-in" style="animation-delay:0.3s" id="avg-summary-card">
-    <h3 style="font-size:15px; font-weight:700; margin-bottom:16px;">
-        <i class="bi bi-calculator me-2" style="color:var(--accent-primary)"></i>Weighted Average Cost Per Ticker
-    </h3>
+<div class="panel mt-4 fade-in" style="--delay:.25s" id="avg-summary-card">
+    <div class="panel-header"><div><span class="eyebrow">Cost basis</span><h2>Weighted averages</h2><p>Consolidated view across multiple purchases of the same ticker.</p></div></div>
     <div id="avg-summary-body" class="data-table-wrapper">
         <p class="text-muted" style="font-size:13px">Add holdings to see weighted averages.</p>
     </div>
@@ -67,7 +72,7 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Ticker Symbol</label>
-                            <input type="text" class="form-control" id="inp-ticker" placeholder="Enter ticker">
+                            <input type="text" class="form-control" id="inp-ticker" placeholder="e.g. AAPL" required maxlength="10" autocomplete="off">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Company Name (optional)</label>
@@ -75,11 +80,11 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Buy Price ($)</label>
-                            <input type="number" step="0.01" class="form-control" id="inp-price" placeholder="0.00">
+                            <input type="number" step="0.01" min="0.01" class="form-control" id="inp-price" placeholder="0.00" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Quantity</label>
-                            <input type="number" step="0.01" class="form-control" id="inp-qty" placeholder="0">
+                            <input type="number" step="0.01" min="0.01" class="form-control" id="inp-qty" placeholder="0" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Date Purchased</label>

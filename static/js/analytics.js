@@ -8,9 +8,9 @@ let currentPeriod = '1mo';
 let currentTicker = '';
 
 // ─── Chart.js Global Defaults ────────────────────────────────
-Chart.defaults.color = '#9ca3af';
-Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
-Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.color = '#9eb0c5';
+Chart.defaults.borderColor = 'rgba(148,163,184,0.12)';
+Chart.defaults.font.family = "'DM Sans', sans-serif";
 
 // ─── Historical Performance Chart ────────────────────────────
 async function loadChart() {

@@ -30,6 +30,12 @@ function pnlArrow(val) {
     return val >= 0 ? '<i class="bi bi-caret-up-fill"></i>' : '<i class="bi bi-caret-down-fill"></i>';
 }
 
+function escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = String(value);
+    return div.innerHTML;
+}
+
 // ─── API Fetch Wrapper ───────────────────────────────────────
 async function api(url, options = {}) {
     try {
@@ -77,7 +83,7 @@ function showToast(message, type = 'info') {
         <div id="${toastId}" class="toast show fade-in" role="alert" style="border-left: 3px solid ${colors[type] || colors.info}">
             <div class="toast-body d-flex align-items-center gap-2">
                 <i class="bi ${icons[type] || icons.info}" style="color:${colors[type] || colors.info}; font-size:16px"></i>
-                <span>${message}</span>
+                <span>${escapeHtml(message)}</span>
             </div>
         </div>`;
     container.insertAdjacentHTML('beforeend', html);
@@ -137,7 +143,24 @@ function sendBrowserNotification(title, body) {
 document.addEventListener('DOMContentLoaded', () => {
     startClock();
     updateMarketStatus();
-    requestNotificationPermission();
+
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.getElementById('sidebar-toggle');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    const closeSidebar = () => {
+        sidebar?.classList.remove('open');
+        backdrop?.classList.remove('show');
+        toggle?.setAttribute('aria-expanded', 'false');
+    };
+    toggle?.addEventListener('click', () => {
+        const isOpen = sidebar?.classList.toggle('open');
+        backdrop?.classList.toggle('show', Boolean(isOpen));
+        toggle.setAttribute('aria-expanded', String(Boolean(isOpen)));
+    });
+    backdrop?.addEventListener('click', closeSidebar);
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') closeSidebar();
+    });
 
     // Refresh market status every 60s
     setInterval(updateMarketStatus, 60000);

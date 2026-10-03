@@ -10,28 +10,32 @@ async function loadDashboard() {
         const alertsData = await api('/api/alerts');
 
         // Compute totals
-        let totalInvested = 0, totalMarketValue = 0, totalPnl = 0, holdingCount = 0;
+        let totalInvested = 0, totalMarketValue = 0, totalPnl = 0, holdingCount = 0, pricedPositions = 0;
         data.forEach(item => {
             totalInvested += item.total_invested || 0;
             totalMarketValue += item.market_value || 0;
             totalPnl += item.pnl || 0;
+            if (item.current_price != null) pricedPositions += 1;
             holdingCount += item.entries ? item.entries.length : 0;
         });
 
-        const totalPnlPct = totalInvested > 0 ? ((totalMarketValue - totalInvested) / totalInvested) * 100 : 0;
+        const hasMarketData = pricedPositions > 0;
+        const totalPnlPct = hasMarketData && totalInvested > 0
+            ? ((totalMarketValue - totalInvested) / totalInvested) * 100
+            : null;
 
         // Update summary cards
         document.getElementById('total-invested').textContent = formatCurrency(totalInvested);
         document.getElementById('total-holdings').textContent = `${holdingCount} holding${holdingCount !== 1 ? 's' : ''} · ${data.length} ticker${data.length !== 1 ? 's' : ''}`;
 
-        document.getElementById('market-value').textContent = formatCurrency(totalMarketValue || null);
-        document.getElementById('market-value-sub').innerHTML = totalMarketValue
+        document.getElementById('market-value').textContent = formatCurrency(hasMarketData ? totalMarketValue : null);
+        document.getElementById('market-value-sub').innerHTML = hasMarketData
             ? `${pnlArrow(totalPnl)} ${formatCurrency(Math.abs(totalPnl))}`
             : 'Waiting for market data…';
         document.getElementById('market-value-sub').className = `sub ${pnlClass(totalPnl)}`;
 
         const pnlEl = document.getElementById('total-pnl');
-        pnlEl.textContent = formatCurrency(totalPnl);
+        pnlEl.textContent = formatCurrency(hasMarketData ? totalPnl : null);
         pnlEl.className = `value ${pnlClass(totalPnl)}`;
 
         const pnlPctEl = document.getElementById('total-pnl-pct');

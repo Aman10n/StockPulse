@@ -48,6 +48,11 @@ async function loadHoldings() {
             `).join('');
         }
 
+        const totalCost = holdings.reduce((sum, h) => sum + (h.buy_price * h.quantity), 0);
+        document.getElementById('portfolio-entry-count').textContent = holdings.length;
+        document.getElementById('portfolio-ticker-count').textContent = new Set(holdings.map(h => h.ticker)).size;
+        document.getElementById('portfolio-cost-basis').textContent = formatCurrency(totalCost);
+
         // Build weighted average summary
         buildAvgSummary(holdings);
     } catch (e) {}

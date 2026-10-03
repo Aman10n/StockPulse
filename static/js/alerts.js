@@ -73,6 +73,7 @@ async function loadAlerts() {
 // ─── Create Alert ────────────────────────────────────────────
 async function createAlert(e) {
     e.preventDefault();
+    requestNotificationPermission();
     const btn = document.getElementById('create-alert-btn');
     btn.disabled = true;
 

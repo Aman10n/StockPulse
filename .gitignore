@@ -23,4 +23,5 @@ test_output.txt
 .idea/
 .DS_Store
 Thumbs.db
-
+.chrome-*/
+docs/screenshots/mobile-dashboard.png

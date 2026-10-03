@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Alerts{% endblock %}
-{% block page_title %}Smart Alerts{% endblock %}
+{% block title %}Price alerts{% endblock %}
+{% block page_eyebrow %}Risk automation{% endblock %}
+{% block page_title %}Stay ahead of meaningful price moves.{% endblock %}
 
 {% block content %}
-<!-- Create Alert Section -->
-<div class="glass-card mb-4 fade-in">
-    <h3 style="font-size:15px; font-weight:700; margin-bottom:16px;">
-        <i class="bi bi-bell-fill me-2" style="color:var(--accent-primary)"></i>Create New Alert
-    </h3>
+<section class="page-intro compact fade-in"><div><span class="eyebrow">Price monitoring</span><h2>Set thresholds. Keep your focus.</h2><p>StockPulse checks active rules and surfaces stop-loss or take-profit events.</p></div><span class="feature-chip"><i class="bi bi-broadcast-pin"></i> Checks every 60 seconds</span></section>
+
+<div class="panel mb-4 fade-in" style="--delay:.08s">
+    <div class="panel-header"><div><span class="eyebrow">New rule</span><h2>Create an alert</h2><p>Choose a ticker, direction, and target price.</p></div></div>
     <form id="create-alert-form" onsubmit="createAlert(event)">
         <div class="row g-3 align-items-end">
             <div class="col-md-3">
@@ -36,7 +36,7 @@
 </div>
 
 <!-- Active Alerts -->
-<div class="glass-card mb-4 fade-in" style="animation-delay:0.15s">
+<div class="panel mb-4 fade-in" style="--delay:.15s">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 style="font-size:15px; font-weight:700; margin:0;">
             <i class="bi bi-shield-check me-2" style="color:var(--green)"></i>Active Alerts
@@ -65,7 +65,7 @@
 </div>
 
 <!-- Triggered Alerts -->
-<div class="glass-card fade-in" style="animation-delay:0.3s">
+<div class="panel fade-in" style="--delay:.25s">
     <h3 style="font-size:15px; font-weight:700; margin-bottom:16px;">
         <i class="bi bi-exclamation-triangle me-2" style="color:var(--yellow)"></i>Triggered Alerts
     </h3>
