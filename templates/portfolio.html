@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Portfolio{% endblock %}
+{% block page_title %}Portfolio Manager{% endblock %}
+
+{% block content %}
+<!-- Action Bar -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 fade-in">
+    <div>
+        <h2 style="font-size:15px; font-weight:600; color:var(--text-secondary); margin:0;">
+            Manage your stock holdings — add, edit, or bulk-upload purchases.
+        </h2>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn-outline-glass" data-bs-toggle="modal" data-bs-target="#bulkUploadModal" id="bulk-upload-btn">
+            <i class="bi bi-upload me-1"></i>Bulk Upload
+        </button>
+        <button class="btn-primary-gradient" data-bs-toggle="modal" data-bs-target="#addHoldingModal" id="add-holding-btn">
+            <i class="bi bi-plus-lg me-1"></i>Add Holding
+        </button>
+    </div>
+</div>
+
+<!-- Holdings Table -->
+<div class="glass-card fade-in" style="animation-delay:0.15s">
+    <div class="data-table-wrapper">
+        <table class="data-table" id="portfolio-table">
+            <thead>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Name</th>
+                    <th>Sector</th>
+                    <th>Buy Price</th>
+                    <th>Quantity</th>
+                    <th>Total Cost</th>
+                    <th>Date Purchased</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="portfolio-body">
+                <tr><td colspan="8"><div class="empty-state"><i class="bi bi-inbox"></i><h4>No Holdings</h4><p>Click "Add Holding" to get started.</p></div></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Weighted Average Summary -->
+<div class="glass-card mt-4 fade-in" style="animation-delay:0.3s" id="avg-summary-card">
+    <h3 style="font-size:15px; font-weight:700; margin-bottom:16px;">
+        <i class="bi bi-calculator me-2" style="color:var(--accent-primary)"></i>Weighted Average Cost Per Ticker
+    </h3>
+    <div id="avg-summary-body" class="data-table-wrapper">
+        <p class="text-muted" style="font-size:13px">Add holdings to see weighted averages.</p>
+    </div>
+</div>
+
+<!-- Add Holding Modal -->
+<div class="modal fade" id="addHoldingModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Add Holding</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="add-holding-form" onsubmit="submitHolding(event)">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Ticker Symbol</label>
+                            <input type="text" class="form-control" id="inp-ticker" placeholder="Enter ticker">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Company Name (optional)</label>
+                            <input type="text" class="form-control" id="inp-name" placeholder="Leave blank to auto-detect">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Buy Price ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="inp-price" placeholder="0.00">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Quantity</label>
+                            <input type="number" step="0.01" class="form-control" id="inp-qty" placeholder="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Date Purchased</label>
+                            <input type="date" class="form-control" id="inp-date">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Sector</label>
+                            <select class="form-select" id="inp-sector">
+                                <option value="">Auto-detect</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-outline-glass" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-primary-gradient" id="submit-holding-btn">
+                        <i class="bi bi-check-lg me-1"></i>Add Holding
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Holding Modal -->
+<div class="modal fade" id="editHoldingModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Edit Holding</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="edit-holding-form" onsubmit="updateHolding(event)">
+                <input type="hidden" id="edit-id">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Ticker Symbol</label>
+                            <input type="text" class="form-control" id="edit-ticker">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Company Name</label>
+                            <input type="text" class="form-control" id="edit-name">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Buy Price ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="edit-price">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Quantity</label>
+                            <input type="number" step="0.01" class="form-control" id="edit-qty">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Date Purchased</label>
+                            <input type="date" class="form-control" id="edit-date">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Sector</label>
+                            <select class="form-select" id="edit-sector"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-outline-glass" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-primary-gradient">
+                        <i class="bi bi-check-lg me-1"></i>Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Upload Modal -->
+<div class="modal fade" id="bulkUploadModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-upload me-2"></i>Bulk Upload CSV</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">
+                    Upload a CSV file with columns: <code>ticker, buy_price, quantity, date_purchased, sector</code>
+                </p>
+                <div class="drop-zone" id="drop-zone" onclick="document.getElementById('csv-file').click()">
+                    <i class="bi bi-cloud-arrow-up"></i>
+                    <p>Drag & drop your CSV file here or click to browse</p>
+                    <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="handleCSVUpload(this)">
+                </div>
+                <div id="upload-result" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/portfolio.js"></script>
+{% endblock %}

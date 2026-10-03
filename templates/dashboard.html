@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Summary Cards -->
+<div class="summary-cards" id="summary-cards">
+    <div class="summary-card fade-in" style="animation-delay: 0.1s">
+        <div class="summary-icon purple"><i class="bi bi-wallet2"></i></div>
+        <div class="summary-info">
+            <h3>Total Invested</h3>
+            <div class="value" id="total-invested">—</div>
+            <div class="sub text-neutral" id="total-holdings">0 holdings</div>
+        </div>
+    </div>
+
+    <div class="summary-card fade-in" style="animation-delay: 0.2s">
+        <div class="summary-icon green"><i class="bi bi-graph-up"></i></div>
+        <div class="summary-info">
+            <h3>Market Value</h3>
+            <div class="value" id="market-value">—</div>
+            <div class="sub" id="market-value-sub">—</div>
+        </div>
+    </div>
+
+    <div class="summary-card fade-in" style="animation-delay: 0.3s">
+        <div class="summary-icon blue"><i class="bi bi-activity"></i></div>
+        <div class="summary-info">
+            <h3>Unrealized P&L</h3>
+            <div class="value" id="total-pnl">—</div>
+            <div class="sub" id="total-pnl-pct">—</div>
+        </div>
+    </div>
+
+    <div class="summary-card fade-in" style="animation-delay: 0.4s">
+        <div class="summary-icon yellow"><i class="bi bi-bell"></i></div>
+        <div class="summary-info">
+            <h3>Active Alerts</h3>
+            <div class="value" id="active-alerts">0</div>
+            <div class="sub text-neutral" id="triggered-alerts">0 triggered</div>
+        </div>
+    </div>
+</div>
+
+<!-- Holdings Table -->
+<div class="glass-card fade-in" style="animation-delay: 0.5s">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 style="font-size:16px; font-weight:700; margin:0;">
+            <i class="bi bi-table me-2" style="color:var(--accent-primary)"></i>Live Holdings
+        </h2>
+        <div class="d-flex gap-2 align-items-center">
+            <span class="badge" style="background:var(--green-soft); color:var(--green); font-size:11px; padding:5px 10px; border-radius:20px;" id="last-updated">
+                <i class="bi bi-clock me-1"></i>Updating…
+            </span>
+            <button class="btn-outline-glass" onclick="loadDashboard()" id="refresh-btn">
+                <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+            </button>
+        </div>
+    </div>
+
+    <div class="data-table-wrapper">
+        <table class="data-table" id="holdings-table">
+            <thead>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Name</th>
+                    <th>Sector</th>
+                    <th>Avg Cost</th>
+                    <th>Qty</th>
+                    <th>Invested</th>
+                    <th>Current Price</th>
+                    <th>Market Value</th>
+                    <th>P&L</th>
+                    <th>P&L %</th>
+                </tr>
+            </thead>
+            <tbody id="holdings-body">
+                <tr>
+                    <td colspan="10">
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <h4>No Holdings Yet</h4>
+                            <p>Add stocks from the <a href="/portfolio">Portfolio</a> page to see live data here.</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/dashboard.js"></script>
+{% endblock %}

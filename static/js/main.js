@@ -1,0 +1,144 @@
+/**
+ * StockPulse — Shared JavaScript Utilities
+ * ==========================================
+ */
+
+// ─── Format helpers ──────────────────────────────────────────
+function formatCurrency(val, symbol = '$') {
+    if (val == null || isNaN(val)) return '—';
+    return symbol + Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function formatPercent(val) {
+    if (val == null || isNaN(val)) return '—';
+    const sign = val >= 0 ? '+' : '';
+    return sign + Number(val).toFixed(2) + '%';
+}
+
+function formatNumber(val, decimals = 2) {
+    if (val == null || isNaN(val)) return '—';
+    return Number(val).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+function pnlClass(val) {
+    if (val == null) return 'text-neutral';
+    return val >= 0 ? 'text-profit' : 'text-loss';
+}
+
+function pnlArrow(val) {
+    if (val == null) return '';
+    return val >= 0 ? '<i class="bi bi-caret-up-fill"></i>' : '<i class="bi bi-caret-down-fill"></i>';
+}
+
+// ─── API Fetch Wrapper ───────────────────────────────────────
+async function api(url, options = {}) {
+    try {
+        const res = await fetch(url, {
+            headers: { 'Content-Type': 'application/json', ...options.headers },
+            ...options,
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ error: res.statusText }));
+            throw new Error(err.error || 'API Error');
+        }
+        // Check if response might be a file download
+        const ct = res.headers.get('content-type') || '';
+        if (ct.includes('text/csv') || ct.includes('application/pdf')) {
+            return res;
+        }
+        return await res.json();
+    } catch (err) {
+        console.error(`API Error [${url}]:`, err);
+        showToast(err.message, 'danger');
+        throw err;
+    }
+}
+
+// ─── Toast Notifications ─────────────────────────────────────
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const colors = {
+        info: 'var(--accent-primary)',
+        success: 'var(--green)',
+        danger: 'var(--red)',
+        warning: 'var(--yellow)',
+    };
+    const icons = {
+        info: 'bi-info-circle',
+        success: 'bi-check-circle',
+        danger: 'bi-exclamation-triangle',
+        warning: 'bi-exclamation-circle',
+    };
+
+    const toastId = 'toast-' + Date.now();
+    const html = `
+        <div id="${toastId}" class="toast show fade-in" role="alert" style="border-left: 3px solid ${colors[type] || colors.info}">
+            <div class="toast-body d-flex align-items-center gap-2">
+                <i class="bi ${icons[type] || icons.info}" style="color:${colors[type] || colors.info}; font-size:16px"></i>
+                <span>${message}</span>
+            </div>
+        </div>`;
+    container.insertAdjacentHTML('beforeend', html);
+
+    setTimeout(() => {
+        const el = document.getElementById(toastId);
+        if (el) el.remove();
+    }, 4000);
+}
+
+// ─── Market Status Updater ───────────────────────────────────
+async function updateMarketStatus() {
+    try {
+        const data = await api('/api/market-status');
+        document.querySelectorAll('.market-badge, .market-badge-top').forEach(el => {
+            el.setAttribute('data-status', data.status);
+            el.querySelector('.status-text').textContent = data.label;
+        });
+    } catch (e) { /* silent */ }
+}
+
+// ─── Live Clock ──────────────────────────────────────────────
+function startClock() {
+    const el = document.getElementById('live-clock');
+    if (!el) return;
+    const tick = () => {
+        const now = new Date();
+        el.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    };
+    tick();
+    setInterval(tick, 1000);
+}
+
+// ─── Alert Sound ─────────────────────────────────────────────
+function playAlertSound() {
+    const audio = document.getElementById('alert-sound');
+    if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+    }
+}
+
+// ─── Browser Notifications ───────────────────────────────────
+function requestNotificationPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+}
+
+function sendBrowserNotification(title, body) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, { body, icon: '/static/img/icon.png' });
+    }
+}
+
+// ─── Startup ─────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    startClock();
+    updateMarketStatus();
+    requestNotificationPermission();
+
+    // Refresh market status every 60s
+    setInterval(updateMarketStatus, 60000);
+});
