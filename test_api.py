@@ -94,3 +94,38 @@ def test_bulk_upload(client, monkeypatch):
     )
     assert response.status_code == 200
     assert response.get_json()['created'] == 1
+
+
+def test_holding_rejects_bad_symbols_and_dates(client):
+    bad_symbol = client.post('/api/holdings', json={
+        'ticker': '<script>', 'buy_price': 10, 'quantity': 1,
+    })
+    assert bad_symbol.status_code == 400
+
+    bad_date = client.post('/api/holdings', json={
+        'ticker': 'AAPL', 'buy_price': 10, 'quantity': 1,
+        'date_purchased': 'not-a-date',
+    })
+    assert bad_date.status_code == 400
+
+
+def test_duplicate_alert_and_rearm(client):
+    payload = {'ticker': 'MSFT', 'alert_type': 'take-profit', 'threshold_price': 500}
+    created = client.post('/api/alerts', json=payload)
+    assert created.status_code == 201
+    assert client.post('/api/alerts', json=payload).status_code == 409
+
+    alert_id = created.get_json()['id']
+    rearmed = client.post(f'/api/alerts/{alert_id}/rearm')
+    assert rearmed.status_code == 200
+    assert rearmed.get_json()['is_triggered'] is False
+
+
+def test_bulk_upload_requires_expected_columns(client):
+    response = client.post(
+        '/api/holdings/bulk',
+        data={'file': (io.BytesIO(b'ticker,price\nAAPL,10\n'), 'invalid.csv')},
+        content_type='multipart/form-data',
+    )
+    assert response.status_code == 400
+    assert 'Missing required columns' in response.get_json()['error']
