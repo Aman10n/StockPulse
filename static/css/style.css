@@ -158,6 +158,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .mini-metrics > div { padding: 15px 18px; }
 .mini-metrics span { display: block; color: var(--text-muted); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
 .mini-metrics strong { display: block; margin-top: 6px; font: 700 18px var(--font-display); }
+.mini-metrics strong.metric-time { font-size: 14px; }
 
 .data-table-wrapper { width: 100%; overflow-x: auto; }
 .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }

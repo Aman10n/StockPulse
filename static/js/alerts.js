@@ -10,6 +10,8 @@ async function loadAlerts() {
         const alerts = await api('/api/alerts');
         const active = alerts.filter(a => !a.is_triggered);
         const triggered = alerts.filter(a => a.is_triggered);
+        document.getElementById('alert-active-count').textContent = active.length;
+        document.getElementById('alert-triggered-count').textContent = triggered.length;
 
         // Active alerts table
         const activeBody = document.getElementById('active-alerts-body');
@@ -121,6 +123,7 @@ async function checkAlerts() {
         } else {
             showToast('No alerts triggered', 'info');
         }
+        document.getElementById('alert-last-checked').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } catch (e) {}
 }
 

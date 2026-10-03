@@ -7,6 +7,12 @@
 {% block content %}
 <section class="page-intro compact fade-in"><div><span class="eyebrow">Price monitoring</span><h2>Set thresholds. Keep your focus.</h2><p>StockPulse checks active rules and surfaces stop-loss or take-profit events.</p></div><span class="feature-chip"><i class="bi bi-broadcast-pin"></i> Checks every 60 seconds</span></section>
 
+<section class="mini-metrics fade-in" style="--delay:.04s" aria-label="Alert overview">
+    <div><span>Active rules</span><strong id="alert-active-count">0</strong></div>
+    <div><span>Triggered rules</span><strong id="alert-triggered-count">0</strong></div>
+    <div><span>Last checked</span><strong id="alert-last-checked" class="metric-time">Not yet</strong></div>
+</section>
+
 <div class="panel mb-4 fade-in" style="--delay:.08s">
     <div class="panel-header"><div><span class="eyebrow">New rule</span><h2>Create an alert</h2><p>Choose a ticker, direction, and target price.</p></div></div>
     <form id="create-alert-form" onsubmit="createAlert(event)">
