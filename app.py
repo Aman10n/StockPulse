@@ -8,6 +8,7 @@ import os
 import csv
 import io
 import json
+import math
 import re
 import time
 from datetime import datetime, timezone
@@ -132,8 +133,10 @@ def _positive_number(value, field_name: str) -> float:
         parsed = float(value)
     except (TypeError, ValueError) as exc:
         raise ValueError(f'{field_name} must be a number') from exc
-    if parsed <= 0:
+    if not math.isfinite(parsed) or parsed <= 0:
         raise ValueError(f'{field_name} must be greater than zero')
+    if parsed > 1_000_000_000:
+        raise ValueError(f'{field_name} is above the supported limit')
     return parsed
 
 
